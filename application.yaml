@@ -1,0 +1,6 @@
+token: XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=64e01edc04c9498993ae2a3cdfff2919; token=64e01edc04c9498993ae2a3cdfff2919
+start_page: 1
+end_page: 10
+output_dir: "output"
+concurrency: 3
+delay_ms: 1000
