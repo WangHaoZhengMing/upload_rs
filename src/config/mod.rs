@@ -15,6 +15,7 @@ pub struct AppConfig {
     pub output_dir: String,
     pub concurrency: usize,
     pub delay_ms: u64,
+    pub catalogue_base_url: String,
 }
 
 impl AppConfig {

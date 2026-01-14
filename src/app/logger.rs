@@ -15,7 +15,7 @@ pub fn init() {
 
 pub fn init_test() {
     tracing_subscriber::registry()
-        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("debug")))
+        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
         .with(
             layer()
                 .with_file(true)
