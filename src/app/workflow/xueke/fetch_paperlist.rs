@@ -1,16 +1,19 @@
+use anyhow::anyhow;
 use chromiumoxide::Browser;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::{debug, error};
-use anyhow::anyhow;
 
-
-pub async fn fetch_paper_list(browser: &Browser, base_url: &str, page_number: i32) -> anyhow::Result<Vec<PaperInfo>> {
+pub async fn fetch_paper_list(
+    browser: &Browser,
+    base_url: &str,
+    page_number: i32,
+) -> anyhow::Result<Vec<PaperInfo>> {
     let page_url = format!("{}p{}", base_url, page_number);
     debug!("正在打开目录页: {}", page_url);
-    
+
     let page = browser.new_page(&page_url).await?;
-    
+
     let js_code = r#"
         () => {
             const elements = document.querySelectorAll("div.info-item.exam-info a.exam-name");
@@ -48,8 +51,6 @@ pub async fn fetch_paper_list(browser: &Browser, base_url: &str, page_number: i3
 
     Ok(papers)
 }
-
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaperInfo {

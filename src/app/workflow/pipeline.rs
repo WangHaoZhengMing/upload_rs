@@ -20,9 +20,7 @@ pub async fn run(state: AppState) -> anyhow::Result<()> {
         futures::stream::iter(pages)
             .map(|mut page| {
                 let tiku_page = tiku_page.clone();
-                async move {
-                    save_paper(tiku_page, &mut page).await
-                }
+                async move { save_paper(tiku_page, &mut page).await }
             })
             .buffer_unordered(5)
             .collect::<Vec<anyhow::Result<()>>>()

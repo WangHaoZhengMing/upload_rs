@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use chromiumoxide::Page;
-use chromiumoxide::browser::{Browser, BrowserConfig};
-use chromiumoxide::handler::viewport::Viewport;
+use chromiumoxide::browser::Browser;
 use futures::StreamExt;
 use std::path::PathBuf;
 use std::process::Command;
@@ -11,32 +10,23 @@ use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{debug, info, warn};
 
-
-
 /// 应用程序共享状态
 #[derive(Clone)]
 pub struct AppState {
-    /// HTTP 客户端（用于 API 请求和文件上传）
-    pub http_client: reqwest::Client,
 
     /// 浏览器实例
     pub browser: Arc<Browser>,
 
     /// 页面实例（使用 RwLock 支持并发访问）
     pub page: Arc<RwLock<Page>>,
-    
+
     /// 应用配置
-    pub config: &'static crate::config::AppConfig,
+    pub _config: &'static crate::config::AppConfig,
 }
 
 impl AppState {
     /// 创建新的应用状态
     pub async fn new() -> Result<Self> {
-        // 创建 HTTP 客户端
-        let http_client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(30))
-            .build()?;
-
         // 连接到浏览器
         let browser = connect_browser().await?;
 
@@ -77,10 +67,9 @@ impl AppState {
         };
 
         Ok(Self {
-            http_client,
             browser: Arc::new(browser),
             page: Arc::new(RwLock::new(page)),
-            config: crate::config::get(),
+            _config: crate::config::get(),
         })
     }
 }
@@ -103,7 +92,7 @@ pub async fn connect_browser() -> Result<Browser> {
             warn!("无法连接到端口 {}，准备启动新的 Edge 实例...", port);
             is_new_instance = true;
             launch_edge_process(port)?;
-            
+
             let mut retries = 20;
             let mut connected_browser = None;
             while retries > 0 {
@@ -148,67 +137,14 @@ pub async fn connect_browser() -> Result<Browser> {
     Ok(browser)
 }
 
-/// 启动无头浏览器实例
-pub async fn launch_headless_browser(port: u16) -> Result<Browser> {
-    debug!("启动无头浏览器，端口: {}", port);
-    
-    let (browser, mut handler) = Browser::launch(
-        BrowserConfig::builder()
-            .viewport(Some(Viewport {
-                width: 1200,
-                height: 1080,
-                device_scale_factor: Some(2.0),
-                emulating_mobile: false,
-                is_landscape: true,
-                has_touch: false,
-            }))
-            .chrome_executable(get_edge_path()?)
-            .args(vec![
-                format!("--remote-debugging-port={}", port),
-                "--headless".to_string(),
-                "--disable-gpu".to_string(),
-                "--no-sandbox".to_string(),
-            ])
-            .build()
-            .map_err(|e| anyhow::anyhow!("配置浏览器失败: {}", e))?,
-    )
-    .await
-    .map_err(|e| anyhow::anyhow!("启动浏览器失败: {}", e))?;
 
-    tokio::spawn(async move {
-        while let Some(h) = handler.next().await {
-            if h.is_err() {
-                break;
-            }
-        }
-    });
 
-    debug!("✓ 无头浏览器启动成功，端口: {}", port);
-    Ok(browser)
-}
-
-/// 获取 Edge 浏览器路径
-fn get_edge_path() -> Result<PathBuf> {
-    let edge_paths = vec![
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-    ];
-
-    for path in &edge_paths {
-        let p = PathBuf::from(path);
-        if p.exists() {
-            return Ok(p);
-        }
-    }
-
-    Err(anyhow::anyhow!("未找到 Edge 浏览器"))
-}
 
 /// 启动 Edge 浏览器进程
 fn launch_edge_process(port: u16) -> Result<()> {
     let user_profile = std::env::var("USERPROFILE").context("找不到 USERPROFILE")?;
-    let base_user_data_dir = PathBuf::from(user_profile)
-        .join(r"AppData\Local\Microsoft\Edge\User Data");
+    let base_user_data_dir =
+        PathBuf::from(user_profile).join(r"AppData\Local\Microsoft\Edge\User Data");
     let profile_name = format!("Profile_{}", port);
     let user_data_dir = base_user_data_dir.join(profile_name);
 
@@ -225,9 +161,7 @@ fn launch_edge_process(port: u16) -> Result<()> {
         }
     }
 
-    let edge_path = edge_path.ok_or_else(|| {
-        anyhow::anyhow!("未找到 Edge 浏览器")
-    })?;
+    let edge_path = edge_path.ok_or_else(|| anyhow::anyhow!("未找到 Edge 浏览器"))?;
 
     info!("使用 Edge 路径: {}", edge_path);
 

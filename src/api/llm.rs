@@ -1,5 +1,5 @@
-use openai::chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole};
 use openai::Credentials;
+use openai::chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole};
 use tracing::{debug, info, warn};
 
 const API_KEY: &str = "26e96c4d312e48feacbd78b7c42bd71e";
@@ -89,7 +89,11 @@ pub async fn ask_llm_with_config(
     Ok(content.trim().to_string())
 }
 
-fn build_city_resolution_prompt(paper_name: &str, province: Option<&str>, matched_cities: &[String]) -> String {
+fn build_city_resolution_prompt(
+    paper_name: &str,
+    province: Option<&str>,
+    matched_cities: &[String],
+) -> String {
     let province_info = if let Some(prov) = province {
         format!("已知省份：{}\n", prov)
     } else {
@@ -121,14 +125,20 @@ pub async fn resolve_city_with_llm(
         return Ok(None);
     }
 
-    info!("使用 LLM 裁决城市，试卷名称: {}, 候选城市数量: {}", paper_name, matched_cities.len());
+    info!(
+        "使用 LLM 裁决城市，试卷名称: {}, 候选城市数量: {}",
+        paper_name,
+        matched_cities.len()
+    );
     debug!("候选城市列表: {:?}", matched_cities);
 
     let prompt = build_city_resolution_prompt(paper_name, province, matched_cities);
     debug!("LLM Prompt: {}", prompt);
 
     let config = LlmConfig {
-        system_message: Some("你是一个专业的城市识别助手，能够根据试卷名称准确识别城市。".to_string()),
+        system_message: Some(
+            "你是一个专业的城市识别助手，能够根据试卷名称准确识别城市。".to_string(),
+        ),
         ..Default::default()
     };
 
@@ -146,7 +156,9 @@ pub async fn resolve_city_with_llm(
         }
     }
 
-    info!("LLM 返回的城市 '{}' 不在候选列表中，尝试直接使用", city_name);
+    info!(
+        "LLM 返回的城市 '{}' 不在候选列表中，尝试直接使用",
+        city_name
+    );
     Ok(Some(city_name))
 }
-

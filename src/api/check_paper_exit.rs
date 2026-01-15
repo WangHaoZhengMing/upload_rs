@@ -1,16 +1,15 @@
 use anyhow::Result;
-use serde_json::Value;
 use tracing::info;
 
 use super::get_request::send_api_get_request;
 
 /// 检查试卷名称是否重复
-/// 
+///
 /// # 参数
 /// * `paper_name` - 试卷名称
 /// * `operation_type` - 操作类型 (1: 新建, 2: 编辑)
 /// * `paper_id` - 试卷ID (编辑时需要提供，新建时为空)
-/// 
+///
 /// # 返回
 /// * `Ok(bool)` - true表示重复，false表示不重复
 pub async fn check_paper_name_exist(
@@ -19,17 +18,17 @@ pub async fn check_paper_name_exist(
     paper_id: Option<&str>,
 ) -> Result<bool> {
     let paper_id_str = paper_id.unwrap_or("");
-    
+
     // URL 编码试卷名称
     let encoded_paper_name = urlencoding::encode(paper_name);
-    
+
     let url = format!(
         "https://tps-tiku-api.staff.xdf.cn/paper/check/paperName?paperName={}&operationType={}&paperId={}",
         encoded_paper_name, operation_type, paper_id_str
     );
 
     info!("检查试卷名称: {}", paper_name);
-    
+
     let resp = send_api_get_request(&url).await?;
 
     // 解析响应
@@ -57,11 +56,11 @@ mod tests {
     #[tokio::test]
     async fn test_check_paper_name_exist() {
         logger::init_test();
-        
+
         // 测试新建试卷时检查名称
         let result = check_paper_name_exist("测试试卷名称", 1, None).await;
         assert!(result.is_ok());
-        
+
         println!("试卷名称检查结果: {:?}", result);
     }
 }

@@ -1,8 +1,6 @@
 use anyhow::Result;
 use reqwest::Client;
-use reqwest::header::{
-    ACCEPT, COOKIE, HOST, HeaderMap, HeaderValue, ORIGIN, REFERER, USER_AGENT,
-};
+use reqwest::header::{ACCEPT, COOKIE, HOST, HeaderMap, HeaderValue, ORIGIN, REFERER, USER_AGENT};
 use serde_json::Value;
 use tracing::{debug, info};
 
@@ -30,7 +28,10 @@ pub async fn send_api_get_request(url: &str) -> Result<Value> {
     // 包含: XDFUUID, e2e, e2mf, token
     headers.insert(COOKIE, HeaderValue::from_static("XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=64e01edc04c9498993ae2a3cdfff2919; token=64e01edc04c9498993ae2a3cdfff2919"));
 
-    headers.insert("tikutoken", HeaderValue::from_static("732FD8402F95087CD934374135C46EE5"));
+    headers.insert(
+        "tikutoken",
+        HeaderValue::from_static("732FD8402F95087CD934374135C46EE5"),
+    );
 
     let client = Client::builder()
         .timeout(std::time::Duration::from_secs(30))

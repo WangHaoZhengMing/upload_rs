@@ -25,7 +25,7 @@ pub fn find_grade_code(name: &str) -> Option<i16> {
     if let Some(code) = get_grade_code(name) {
         return Some(code);
     }
-    
+
     // 尝试从字符串中提取年级信息
     if name.contains("七") || name.contains("7") || name.contains("初一") {
         return Some(161);
@@ -36,6 +36,6 @@ pub fn find_grade_code(name: &str) -> Option<i16> {
     if name.contains("九") || name.contains("9") || name.contains("初三") {
         return Some(163);
     }
-    
+
     None
 }

@@ -24,7 +24,7 @@ struct BatchUploadRequest {
 }
 
 /// 转换后的文件信息
-#[derive(Debug, Deserialize,Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConverterFile {
     pub attachment_id: String,
@@ -35,7 +35,7 @@ pub struct ConverterFile {
 }
 
 /// 附件响应信息
-#[derive(Debug, Deserialize,Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AttachmentData {
     pub attachment_id: String,
@@ -43,14 +43,14 @@ pub struct AttachmentData {
     pub file_url: String,
     pub path: String,
     pub file_type: String,
-    
+
     // 加上 default 属性，防止字段缺失导致解析报错
     #[serde(default)]
     pub converter_files: Vec<ConverterFile>,
 }
 
 /// 批量上传响应
-#[derive(Debug, Deserialize,Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct BatchUploadResponse {
     pub success: bool,
     pub code: u16,
@@ -96,44 +96,45 @@ pub async fn upload_and_convert_pdf(local_pdf_path: &str) -> Result<BatchUploadR
     // 3. 调用批量上传接口 (带有重试机制)
     let max_retries = 3;
     let mut response_json = serde_json::Value::Null;
-    
+
     for i in 1..=max_retries {
         // 调用批量上传接口
         response_json = batch_upload_files(&pdf_url, file_name).await?;
 
         // 简单检查 JSON 结构是否合法，如果不合法直接下一次重试
         // 注意：这里只是初步拿到 JSON，具体数据是否为空要在解析后判断
-        
-        let should_retry_empty_data = if let Some(data) = response_json.get("data").and_then(|d| d.as_array()) {
-            if data.is_empty() {
-                true
+
+        let should_retry_empty_data =
+            if let Some(data) = response_json.get("data").and_then(|d| d.as_array()) {
+                if data.is_empty() {
+                    true
+                } else {
+                    // 进一步检查 converterFiles 是否为空
+                    // 只要有一个 attachment 的 converterFiles 不为空，我们就算成功
+                    let has_converted_files = data.iter().any(|item| {
+                        item.get("converterFiles")
+                            .and_then(|cf| cf.as_array())
+                            .map(|arr| !arr.is_empty())
+                            .unwrap_or(false)
+                    });
+                    !has_converted_files
+                }
             } else {
-                // 进一步检查 converterFiles 是否为空
-                // 只要有一个 attachment 的 converterFiles 不为空，我们就算成功
-                let has_converted_files = data.iter().any(|item| {
-                    item.get("converterFiles")
-                        .and_then(|cf| cf.as_array())
-                        .map(|arr| !arr.is_empty())
-                        .unwrap_or(false)
-                });
-                !has_converted_files
-            }
-        } else {
-            true // data 字段不存在或不是数组，视为 data 为空
-        };
+                true // data 字段不存在或不是数组，视为 data 为空
+            };
 
         if !should_retry_empty_data {
             if i > 1 {
                 info!("第 {} 次尝试获取到有效数据", i);
             }
-            break; 
+            break;
         }
 
         if i < max_retries {
             tracing::warn!("批量上传返回 data 为空，准备进行第 {} 次重试...", i + 1);
             tokio::time::sleep(std::time::Duration::from_secs(2)).await;
         } else {
-             tracing::error!("重试 {} 次后 data 依然为空", max_retries);
+            tracing::error!("重试 {} 次后 data 依然为空", max_retries);
         }
     }
 
@@ -147,7 +148,10 @@ pub async fn upload_and_convert_pdf(local_pdf_path: &str) -> Result<BatchUploadR
 
     // 再次硬性检查 data 是否为空，虽然前面循环已经尽力了
     if response.data.is_empty() {
-        return Err(anyhow::anyhow!("批量上传成功但 converter_files 为空 (已重试 {} 次)", max_retries));
+        return Err(anyhow::anyhow!(
+            "批量上传成功但 converter_files 为空 (已重试 {} 次)",
+            max_retries
+        ));
     }
 
     info!("PDF 转换成功，共 {} 个附件", response.data.len());

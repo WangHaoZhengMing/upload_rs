@@ -14,7 +14,7 @@ pub enum Subject {
     地理,
     科学,
 }
-
+#[allow(dead_code)]
 impl Subject {
     /// 获取科目代码
     pub fn to_code(&self) -> i16 {
@@ -33,7 +33,7 @@ impl Subject {
     }
 
     /// 获取试卷子类型的 itemValue
-    /// 
+    ///
     /// 这里统一了所有科目的逻辑，避免分散在不同的函数中
     pub fn get_subtype_value(&self, subtype_name: &str) -> Option<&'static str> {
         // 部分类型是全科目通用的，可以在这里优先匹配
@@ -99,7 +99,7 @@ impl Subject {
             (Self::英语, "教材") => Some("53"),
             (Self::英语, "教辅") => Some("54"),
             (Self::英语, "竞赛") => Some("35311"),
-            
+
             // ==================== 物理 (56) ====================
             (Self::物理, "中考真题") => Some("3561"),
             (Self::物理, "中考模拟") => Some("3563"),
@@ -118,7 +118,7 @@ impl Subject {
             (Self::物理, "教材") => Some("5614"),
             (Self::物理, "教辅") => Some("5615"),
             (Self::物理, "竞赛") => Some("35611"),
-            
+
             // ==================== 化学 (57) ====================
             (Self::化学, "中考真题") => Some("3571"),
             (Self::化学, "中考模拟") => Some("3573"),
@@ -137,7 +137,7 @@ impl Subject {
             (Self::化学, "教材") => Some("5714"),
             (Self::化学, "教辅") => Some("5715"),
             (Self::化学, "竞赛") => Some("35711"),
-            
+
             // ==================== 生物 (58) ====================
             (Self::生物, "中考真题") => Some("3581"),
             (Self::生物, "中考模拟") => Some("3583"),
@@ -156,7 +156,7 @@ impl Subject {
             (Self::生物, "教材") => Some("5814"),
             (Self::生物, "教辅") => Some("5815"),
             (Self::生物, "竞赛") => Some("35811"),
-            
+
             // ==================== 历史 (59) ====================
             (Self::历史, "中考真题") => Some("3611"),
             (Self::历史, "中考模拟") => Some("3613"),
@@ -175,7 +175,7 @@ impl Subject {
             (Self::历史, "教材") => Some("6114"),
             (Self::历史, "教辅") => Some("6115"),
             (Self::历史, "竞赛") => Some("36111"),
-            
+
             // ==================== 政治 (60) ====================
             (Self::政治, "中考真题") => Some("3601"),
             (Self::政治, "中考模拟") => Some("3603"),
@@ -194,7 +194,7 @@ impl Subject {
             (Self::政治, "教材") => Some("6014"),
             (Self::政治, "教辅") => Some("6015"),
             (Self::政治, "竞赛") => Some("36011"),
-            
+
             // ==================== 地理 (61) ====================
             (Self::地理, "中考真题") => Some("3591"),
             (Self::地理, "中考模拟") => Some("3593"),
@@ -213,7 +213,7 @@ impl Subject {
             (Self::地理, "教材") => Some("5914"),
             (Self::地理, "教辅") => Some("5915"),
             (Self::地理, "竞赛") => Some("35911"),
-            
+
             // ==================== 科学 (62) ====================
             (Self::科学, "中考真题") => Some("3621"),
             (Self::科学, "中考模拟") => Some("3623"),
@@ -232,12 +232,11 @@ impl Subject {
             (Self::科学, "教材") => Some("6214"),
             (Self::科学, "教辅") => Some("6215"),
             (Self::科学, "竞赛") => Some("36211"),
-            
+
             _ => None,
         }
     }
 }
-
 
 impl FromStr for Subject {
     type Err = ();
@@ -263,11 +262,11 @@ impl FromStr for Subject {
 /// 建议将这些字符串常量也封装起来，防止拼写错误
 #[derive(serde::Serialize)]
 pub enum PaperCategory {
-    ZhongKaoZhuanTi,   // 中考专题
-    KuaXueDuan,        // 跨学段衔接
-    JieDuanCeShi,      // 阶段测试
-    ZiYan,             // 新东方自研
-    JingSai,           // 竞赛
+    ZhongKaoZhuanTi, // 中考专题
+    KuaXueDuan,      // 跨学段衔接
+    JieDuanCeShi,    // 阶段测试
+    ZiYan,           // 新东方自研
+    JingSai,         // 竞赛
 }
 
 impl PaperCategory {
@@ -302,7 +301,7 @@ impl FromStr for PaperCategory {
 // ==================== 对外暴露的便捷函数 ====================
 
 /// 根据科目名称和子类型名称获取 itemValue
-/// 
+///
 /// # 示例
 /// ```
 /// let val = get_subtype_value_by_name("数学", "期中考试"); // Some("3546")
@@ -315,4 +314,3 @@ pub fn get_subtype_value_by_name(subject_name: &str, subtype_name: &str) -> Opti
         None
     }
 }
-

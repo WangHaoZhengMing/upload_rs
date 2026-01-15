@@ -1,7 +1,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Question {
     pub origin: String,
@@ -11,7 +10,7 @@ pub struct Question {
     pub is_title: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub imgs: Option<Vec<String>>,
-    pub screenshot: String,//我要存为base64字符串
+    pub screenshot: String, //我要存为base64字符串
 }
 
 impl Default for Question {
@@ -38,8 +37,6 @@ pub struct Paper {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub page_id: Option<String>,
     pub stemlist: Vec<Question>,
-    #[serde(skip)]
-    pub stem_screenshot_list: Vec<String>,
     #[serde(skip)]
     pub name_for_pdf: String,
 
@@ -94,5 +91,3 @@ where
 
     deserializer.deserialize_any(YearVisitor)
 }
-
-

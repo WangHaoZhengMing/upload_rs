@@ -6,10 +6,7 @@ use reqwest::header::{
 use serde_json::Value;
 use tracing::{debug, info};
 
-pub async fn send_api_request(
-    url: &str,
-    playload: &Value,
-) -> Result<Value> {
+pub async fn send_api_request(url: &str, playload: &Value) -> Result<Value> {
     // let url = "https://tps-tiku-api.staff.xdf.cn/paper/new/save";
 
     let mut headers = HeaderMap::new();
@@ -36,8 +33,11 @@ pub async fn send_api_request(
     // 包含: XDFUUID, e2e, e2mf, token
     headers.insert(COOKIE, HeaderValue::from_static("XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=64e01edc04c9498993ae2a3cdfff2919; token=64e01edc04c9498993ae2a3cdfff2919"));
 
-    headers.insert("tikutoken", HeaderValue::from_static("732FD8402F95087CD934374135C46EE5"));
-    
+    headers.insert(
+        "tikutoken",
+        HeaderValue::from_static("732FD8402F95087CD934374135C46EE5"),
+    );
+
     let client = Client::builder()
         .timeout(std::time::Duration::from_secs(30))
         .build()?;
@@ -65,7 +65,11 @@ pub async fn send_api_request(
     // 检查响应是否成功
     if !status.is_success() {
         let error_msg = serde_json::to_string(&resp_json).unwrap_or_default();
-        return Err(anyhow::anyhow!("API 请求失败，状态码: {}。响应: {}", status, error_msg));
+        return Err(anyhow::anyhow!(
+            "API 请求失败，状态码: {}。响应: {}",
+            status,
+            error_msg
+        ));
     }
 
     // 检查响应是否成功（根据 code 或 success 字段）

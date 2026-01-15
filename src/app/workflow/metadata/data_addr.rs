@@ -589,12 +589,12 @@ pub fn get_city_code(province_name: Option<&str>, city_name: &str) -> Option<i16
     }
     None
 }
-
+#[allow(dead_code)]
 /// 只通过城市名查找code（不需要指定省份，会在所有省份下搜索）
 pub fn get_city_code_by_name(city_name: &str) -> Option<i16> {
     get_city_code(None, city_name)
 }
-
+#[allow(dead_code)]
 /// 智能查找：先尝试作为省份，再尝试在所有省份下查找城市
 pub fn find_code(name: &str) -> Option<i16> {
     // 先尝试作为省份

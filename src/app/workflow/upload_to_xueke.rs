@@ -32,7 +32,7 @@ pub async fn save_paper(tiku_page: Page, paper: &mut Paper) -> anyhow::Result<()
     } else {
         error!("无法找到 data 字段或 data 不是字符串");
     }
-    
+
     Ok(())
 }
 
@@ -80,7 +80,6 @@ async fn construct_upload_payload(paper: &Paper) -> Result<String> {
 
     Ok(payload.to_string())
 }
-
 
 const API_BASE_URL: &str = "https://tps-tiku-api.staff.xdf.cn";
 const SAVE_PAPER_API_PATH: &str = "/paper/new/save";

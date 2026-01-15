@@ -12,7 +12,7 @@ pub fn init() {
         )
         .init();
 }
-
+#[allow(dead_code)]
 pub fn init_test() {
     tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))

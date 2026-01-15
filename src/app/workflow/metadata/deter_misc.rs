@@ -1,6 +1,6 @@
 use tracing::warn;
 
-use crate::{api::llm::ask_llm};
+use crate::api::llm::ask_llm;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct MiscInfo {
@@ -26,7 +26,7 @@ impl Default for MiscInfo {
 }
 
 impl MiscInfo {
-    pub fn prompt_for_llm( question_name: &str) -> String {
+    pub fn prompt_for_llm(question_name: &str) -> String {
         let user_message = format!(
             r#"你是一个专业的教务数据分析助手。请根据试卷名称 "{}" 分析并提取元数据。
 
@@ -80,7 +80,6 @@ impl MiscInfo {
     }
 
     pub async fn get_mis_info(question_name: &str) -> Option<MiscInfo> {
-
         let response = ask_llm(&Self::prompt_for_llm(question_name)).await.ok()?;
         match serde_json::from_str::<MiscInfo>(&response) {
             Ok(info) => Some(info),

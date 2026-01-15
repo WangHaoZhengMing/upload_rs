@@ -8,7 +8,7 @@ use std::io::Read;
 use tracing::info;
 
 use super::get_credential::get_credential;
-
+#[allow(dead_code)]
 /// 从凭证 JSON 中提取上传信息
 fn parse_credential_info(json_data: &Value) -> Result<CredentialInfo> {
     let data = json_data.get("data").context("缺少 data 字段")?;
@@ -66,7 +66,7 @@ struct CredentialInfo {
     key_prefix: String,
     cdn_domain: String,
 }
-
+#[allow(dead_code)]
 /// 上传图片到腾讯云 COS（内部函数，使用已有凭证）
 async fn upload_image_to_cos_with_credential(
     credential_json: &Value,
@@ -142,7 +142,7 @@ async fn upload_image_to_cos_with_credential(
         ))
     }
 }
-
+#[allow(dead_code)]
 /// 上传图片的完整流程：获取凭证 -> 上传图片 -> 返回 URL
 pub async fn upload_img(local_file_path: &str) -> Result<String> {
     info!("开始上传图片流程: {}", local_file_path);

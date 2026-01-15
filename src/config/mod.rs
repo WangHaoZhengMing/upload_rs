@@ -1,12 +1,12 @@
-
-use std::sync::LazyLock;
 use anyhow::Context;
 use config::{Config, FileFormat};
 use serde::Deserialize;
+use std::sync::LazyLock;
 
 static CONFIG: LazyLock<AppConfig> =
     LazyLock::new(|| AppConfig::load().expect("Failed to initialize config"));
-
+    
+#[allow(dead_code)]
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppConfig {
     pub token: String,
@@ -24,21 +24,19 @@ impl AppConfig {
             .add_source(
                 config::File::with_name("application")
                     .format(FileFormat::Yaml)
-                    .required(true)
+                    .required(true),
             )
             .add_source(
                 config::Environment::with_prefix("APP")
                     .try_parsing(true)
                     .separator("_")
-                    .list_separator(",")
+                    .list_separator(","),
             )
             .build()
             .with_context(|| anyhow::anyhow!("Failed to load config"))?
             .try_deserialize()
             .with_context(|| anyhow::anyhow!("Failed to deserialize config"))
     }
-    
-
 }
 
 pub fn get() -> &'static AppConfig {

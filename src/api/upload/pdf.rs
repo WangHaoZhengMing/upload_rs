@@ -167,16 +167,16 @@ mod tests {
         logger::init_test();
 
         let file_path = "chat-aoax6xxa5t.pdf";
-        
+
         // 确保测试文件存在才运行
         if std::path::Path::new(file_path).exists() {
             println!("找到测试文件，开始上传: {}", file_path);
             let result = upload_pdf(file_path).await;
-            
+
             if let Err(ref e) = result {
                 println!("上传出错: {:?}", e);
             }
-            
+
             assert!(result.is_ok());
             println!("上传成功！PDF URL: {}", result.unwrap());
         } else {
