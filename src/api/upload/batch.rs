@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::info;
+use tokio::io::AsyncWriteExt;
 
 use super::pdf::upload_pdf;
 use crate::api::send_request::send_api_request;
@@ -82,6 +83,21 @@ async fn batch_upload_files(pdf_url: &str, file_name: &str) -> Result<Value> {
     .await
 }
 
+/// 写入警告信息到文件
+async fn write_warning_to_file(message: &str) -> Result<()> {
+    let mut file = tokio::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("warn.txt")
+        .await?;
+    
+    let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+    let log_line = format!("[{}] {}\n", timestamp, message);
+    file.write_all(log_line.as_bytes()).await?;
+    
+    Ok(())
+}
+
 /// 完整流程：上传 PDF -> 批量上传 -> 获取转换后的图片 URLs
 pub async fn upload_and_convert_pdf(local_pdf_path: &str) -> Result<BatchUploadResponse> {
     // 1. 上传 PDF 到腾讯云 COS
@@ -131,10 +147,23 @@ pub async fn upload_and_convert_pdf(local_pdf_path: &str) -> Result<BatchUploadR
         }
 
         if i < max_retries {
-            tracing::warn!("批量上传返回 data 为空，准备进行第 {} 次重试...", i + 1);
+            let warn_msg = format!("批量上传返回 data 为空，准备进行第 {} 次重试... PDF: {}", i + 1, file_name);
+            tracing::warn!("{}", warn_msg);
+            
+            // 写入警告文件
+            if let Err(e) = write_warning_to_file(&warn_msg).await {
+                tracing::error!("写入警告文件失败: {}", e);
+            }
+            
             tokio::time::sleep(std::time::Duration::from_secs(2)).await;
         } else {
-            tracing::error!("重试 {} 次后 data 依然为空", max_retries);
+            let error_msg = format!("重试 {} 次后 data 依然为空，PDF: {}", max_retries, file_name);
+            tracing::error!("{}", error_msg);
+            
+            // 写入警告文件
+            if let Err(e) = write_warning_to_file(&error_msg).await {
+                tracing::error!("写入警告文件失败: {}", e);
+            }
         }
     }
 

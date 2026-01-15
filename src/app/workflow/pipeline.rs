@@ -13,7 +13,6 @@ pub async fn run(state: AppState) -> anyhow::Result<()> {
         tracing::info!(">>> 开始处理第 {} 页", page_num);
         let pages = run_xueke_pipeline(state.clone(), page_num).await?;
 
-        // 提前获取页面句柄，避免循环中重复获取锁
         let tiku_page = state.page.read().await.clone();
 
         // 并发处理上传任务 (并发度设置为 5)
@@ -27,6 +26,8 @@ pub async fn run(state: AppState) -> anyhow::Result<()> {
             .await
             .into_iter()
             .collect::<anyhow::Result<()>>()?;
+
+        
     }
 
     Ok(())

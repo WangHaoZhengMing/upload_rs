@@ -1,6 +1,8 @@
 use anyhow::{Ok, Result};
 use chromiumoxide::Page;
 use serde_json::{Value, json};
+use tokio::fs;
+use tokio::io::AsyncWriteExt;
 use tracing::warn;
 use tracing::{debug, error, info};
 
@@ -16,15 +18,16 @@ use crate::app::workflow::metadata::deter_misc::MiscInfo;
 pub async fn save_paper(tiku_page: Page, paper: &mut Paper) -> anyhow::Result<()> {
     let playload = construct_upload_payload(paper).await?;
     debug!("上传试卷负载: {}", playload);
+
     let code = build_save_paper_js(&playload);
     debug!("保存试卷的 JS 代码: {}", code);
+
     let response: chromiumoxide::js::EvaluationResult = tiku_page.evaluate(code).await?;
     debug!("保存试卷响应: {:?}", response);
     // 2. 转为通用的 JSON Value
     let json_val: Value = response.into_value()?;
 
     // 3. 提取 data 字段
-    // 注意：as_str() 返回 Option<&str>，需要处理 None 的情况
     if let Some(data_str) = json_val.get("data").and_then(|v| v.as_str()) {
         let paper_id = data_str.to_string();
         info!("Paper ID: {}", paper_id);
@@ -32,6 +35,9 @@ pub async fn save_paper(tiku_page: Page, paper: &mut Paper) -> anyhow::Result<()
     } else {
         error!("无法找到 data 字段或 data 不是字符串");
     }
+
+    // 导出 paper 到 TOML 文件
+    export_paper_to_toml(paper).await?;
 
     Ok(())
 }
@@ -79,6 +85,40 @@ async fn construct_upload_payload(paper: &Paper) -> Result<String> {
     });
 
     Ok(payload.to_string())
+}
+
+/// 导出 Paper 到 TOML 文件
+async fn export_paper_to_toml(paper: &Paper) -> Result<()> {
+    // 创建 output_toml 目录
+    let output_dir = "output_toml";
+    if !std::path::Path::new(output_dir).exists() {
+        fs::create_dir_all(output_dir).await?;
+        debug!("创建目录: {}", output_dir);
+    }
+
+    // 序列化为 TOML
+    let toml_string = toml::to_string_pretty(paper)?;
+
+    // 清理文件名中的非法字符
+    let safe_filename = paper
+        .name
+        .replace("/", "_")
+        .replace("\\", "_")
+        .replace(":", "_")
+        .replace("*", "_")
+        .replace("?", "_")
+        .replace("\"", "_")
+        .replace("<", "_")
+        .replace(">", "_")
+        .replace("|", "_");
+
+    // 写入文件
+    let file_path = format!("{}/{}.toml", output_dir, safe_filename);
+    let mut file = fs::File::create(&file_path).await?;
+    file.write_all(toml_string.as_bytes()).await?;
+
+    info!("导出 Paper 到: {}", file_path);
+    Ok(())
 }
 
 const API_BASE_URL: &str = "https://tps-tiku-api.staff.xdf.cn";

@@ -6,15 +6,14 @@ use std::sync::LazyLock;
 static CONFIG: LazyLock<AppConfig> =
     LazyLock::new(|| AppConfig::load().expect("Failed to initialize config"));
     
-#[allow(dead_code)]
+// #[allow(dead_code)]
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppConfig {
-    pub token: String,
+
     pub start_page: i32,
     pub end_page: i32,
     pub output_dir: String,
-    pub concurrency: usize,
-    pub delay_ms: u64,
+
     pub catalogue_base_url: String,
 }
 

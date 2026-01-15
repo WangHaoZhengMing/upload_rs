@@ -107,7 +107,7 @@ pub async fn run_xueke_pipeline(
                 }
             }
         })
-        .buffer_unordered(1)
+        .buffer_unordered(10)
         .collect::<Vec<_>>()
         .await
         .into_iter()
