@@ -1,7 +1,23 @@
-token: XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=64e01edc04c9498993ae2a3cdfff2919; token=64e01edc04c9498993ae2a3cdfff2919
-start_page: 1
-end_page: 1
+# 数学
+# token: XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=01233ce9242f4fedb6ed9ec1562ac64c; token=01233ce9242f4fedb6ed9ec1562ac64c
+# start_page: 13
+# end_page: 400
+# output_dir: "output"
+# concurrency: 3
+# delay_ms: 100
+# catalogue_base_url: "https://zujuan.xkw.com/czsx/shijuan/bk/y2025p"
+
+
+
+
+
+
+
+token: XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=01233ce9242f4fedb6ed9ec1562ac64c; token=01233ce9242f4fedb6ed9ec1562ac64c
+start_page: 11
+end_page: 400
 output_dir: "output"
 concurrency: 3
 delay_ms: 100
-catalogue_base_url: "https://zujuan.xkw.com/czsx/shijuan/bk/y2025p"
+catalogue_base_url: "https://zujuan.xkw.com/czwl/shijuan/bk/y2025p"
+

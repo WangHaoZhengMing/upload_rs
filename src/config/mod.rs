@@ -9,7 +9,7 @@ static CONFIG: LazyLock<AppConfig> =
 // #[allow(dead_code)]
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppConfig {
-
+    pub token: String,
     pub start_page: i32,
     pub end_page: i32,
     pub output_dir: String,

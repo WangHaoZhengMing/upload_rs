@@ -36,7 +36,12 @@ pub async fn extract_paper_metadata(
     debug!("正在提取科目信息");
     let subject_value: Value = page.evaluate(SUBJECT_JS).await?.into_value()?;
     let subject_text: String = subject_value.as_str().unwrap_or("未找到科目").to_string();
-    debug!("提取到的科目文本: {}", subject_text);
+    let mut subject_text_clean = subject_text.clone();
+    for noise in ["初中", "高中", "小学", "中考", "高考"] {
+        subject_text_clean = subject_text_clean.replace(noise, "");
+    }
+    subject_text_clean = subject_text_clean.trim().to_string();
+    debug!("提取到的科目文本: {} -> {}", subject_text, subject_text_clean);
 
     // 关键词 -> 标准科目名映射
     // 注意：顺序很重要，如果有包含关系（如"道德与法治"和"法治"），长的应该在前
@@ -58,7 +63,7 @@ pub async fn extract_paper_metadata(
 
     let mut subject = "未知".to_string();
     for (keyword, standard_name) in &subject_mappings {
-        if subject_text.contains(keyword) {
+        if subject_text_clean.contains(keyword) {
             subject = standard_name.to_string();
             break;
         }

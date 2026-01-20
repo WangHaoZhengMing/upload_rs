@@ -121,7 +121,12 @@ pub const INFO_JS: &str = r#"
 /// JavaScript 脚本：提取科目信息
 pub const SUBJECT_JS: &str = r#"
         () => {
+            const menuTitle = document.querySelector('.subject-menu__title .title-txt');
+            if (menuTitle) {
+                return menuTitle.innerText.trim();
+            }
+
             const subjectElement = document.querySelector('.subject');
-            return subjectElement ? subjectElement.innerText : '未找到科目';
+            return subjectElement ? subjectElement.innerText.trim() : '未找到科目';
         }
     "#;

@@ -1,7 +1,7 @@
 use anyhow::Result;
 use futures::stream::{self, StreamExt};
 use std::fs;
-use tracing::{debug, info, warn};
+use tracing::{ info, warn};
 
 use crate::api::check_paper_exit::check_paper_name_exist;
 use crate::app::state::AppState;
@@ -68,7 +68,7 @@ pub async fn run_xueke_pipeline(
     let downloaded_papers = stream::iter(papers_to_download.into_iter().enumerate())
         .map(|(idx, paper_info)| {
             let state = state.clone();
-            let output_dir = app_config.output_dir.clone();
+
             async move {
                 info!("[{}/{}] 开始下载: {}", idx + 1, total, paper_info.title);
 
@@ -76,28 +76,7 @@ pub async fn run_xueke_pipeline(
                     Ok(paper) => {
                         info!("✅ 成功处理试卷: {}", paper.name);
 
-                        // 仅在 debug 模式下将 paper 保存到 TOML 文件
-                        #[cfg(debug_assertions)]
-                        {
-                            use std::path::PathBuf;
-                            let safe_name = paper
-                                .name
-                                .replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], "_");
-                            let toml_path =
-                                PathBuf::from(&output_dir).join(format!("{}.toml", safe_name));
-                            match toml::to_string_pretty(&paper) {
-                                Ok(toml_str) => {
-                                    if let Err(e) = fs::write(&toml_path, toml_str) {
-                                        debug!("保存 TOML 文件失败: {:?}, 错误: {}", toml_path, e);
-                                    } else {
-                                        debug!("已保存试卷数据到: {:?}", toml_path);
-                                    }
-                                }
-                                Err(e) => {
-                                    debug!("序列化 TOML 失败: {}", e);
-                                }
-                            }
-                        }
+
                         Some(paper)
                     }
                     Err(e) => {

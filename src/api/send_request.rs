@@ -5,6 +5,7 @@ use reqwest::header::{
 };
 use serde_json::Value;
 use tracing::{debug, info};
+use crate::config;
 
 pub async fn send_api_request(url: &str, playload: &Value) -> Result<Value> {
     // let url = "https://tps-tiku-api.staff.xdf.cn/paper/new/save";
@@ -29,9 +30,10 @@ pub async fn send_api_request(url: &str, playload: &Value) -> Result<Value> {
         HeaderValue::from_static("application/json, text/plain, */*"),
     );
 
-    // 6. 【最关键】Cookie (直接复制抓包里的完整字符串)
-    // 包含: XDFUUID, e2e, e2mf, token
-    headers.insert(COOKIE, HeaderValue::from_static("XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=64e01edc04c9498993ae2a3cdfff2919; token=64e01edc04c9498993ae2a3cdfff2919"));
+    // 6. 【最关键】Cookie (从配置文件读取)
+    // 包含: e2e, e2mf, token
+    let cookie_value = &config::get().token;
+    headers.insert(COOKIE, HeaderValue::from_str(cookie_value)?);
 
     headers.insert(
         "tikutoken",
