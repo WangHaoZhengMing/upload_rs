@@ -4,3 +4,4 @@ mod get_request;
 pub mod llm;
 mod send_request;
 pub mod upload;
+pub mod submit_paper;

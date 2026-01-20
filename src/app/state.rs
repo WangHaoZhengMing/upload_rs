@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use chromiumoxide::Page;
 use chromiumoxide::browser::Browser;
 use futures::StreamExt;
-use std::path::PathBuf;
+use std::{env, path::PathBuf};
 use std::process::Command;
 use std::sync::Arc;
 use std::time::Duration;
@@ -139,48 +139,73 @@ pub async fn connect_browser() -> Result<Browser> {
 
 
 
-
-/// 启动 Edge 浏览器进程
 fn launch_edge_process(port: u16) -> Result<()> {
-    let user_profile = std::env::var("USERPROFILE").context("找不到 USERPROFILE")?;
-    let base_user_data_dir =
-        PathBuf::from(user_profile).join(r"AppData\Local\Microsoft\Edge\User Data");
+    // ========== 1. 跨平台获取用户主目录 ==========
+    let (base_user_data_dir, browser_exec_args) = if cfg!(target_os = "windows") {
+        // Windows 逻辑
+        let user_profile = env::var("USERPROFILE").context("找不到 USERPROFILE")?;
+        let base_dir = PathBuf::from(user_profile)
+            .join(r"AppData\Local\Microsoft\Edge\User Data");
+        // 修改点1：统一用 String 类型，避免 &str 和 String 不兼容
+        (base_dir, vec![])
+    } else if cfg!(target_os = "macos") {
+        // macOS 逻辑
+        let home_dir = env::var("HOME").context("找不到 HOME 环境变量")?;
+        let base_dir = PathBuf::from(home_dir)
+            .join("Library/Application Support/Microsoft Edge");
+        // 修改点1：将 &str 改为 String 类型（加 to_string()）
+        (base_dir, vec!["--args".to_string()])
+    } else {
+        return Err(anyhow::anyhow!("暂不支持当前操作系统"));
+    };
+
+    // ========== 2. 构造用户数据目录 ==========
     let profile_name = format!("Profile_{}", port);
     let user_data_dir = base_user_data_dir.join(profile_name);
 
-    let edge_paths = vec![
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-    ];
+    // ========== 3. 跨平台查找浏览器可执行文件 ==========
+    let browser_paths = if cfg!(target_os = "windows") {
+        vec![
+            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+            r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        ]
+    } else if cfg!(target_os = "macos") {
+        vec![
+            "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        ]
+    } else {
+        vec![]
+    };
 
-    let mut edge_path = None;
-    for path in &edge_paths {
-        if std::path::Path::new(path).exists() {
-            edge_path = Some(*path);
-            break;
-        }
-    }
+    let browser_path = browser_paths
+        .iter()
+        .find(|path| std::path::Path::new(path).exists())
+        .ok_or_else(|| anyhow::anyhow!("未找到 Edge/Chrome 浏览器"))?;
 
-    let edge_path = edge_path.ok_or_else(|| anyhow::anyhow!("未找到 Edge 浏览器"))?;
+    info!("使用浏览器路径: {}", browser_path);
 
-    info!("使用 Edge 路径: {}", edge_path);
+    // ========== 4. 构造启动参数（核心修复） ==========
+    // 修改点2：所有参数统一为 String 类型，避免类型不匹配
+    let mut args = browser_exec_args; // 现在是 Vec<String> 类型
+    args.extend(vec![
+        format!("--remote-debugging-port={}", port), // 返回 String
+        format!("--user-data-dir={}", user_data_dir.to_string_lossy()), // 返回 String
+        "--new-window".to_string(), // &str 转 String
+        "--no-first-run".to_string(), // &str 转 String
+        "--no-default-browser-check".to_string(), // &str 转 String
+    ]);
 
-    let args = vec![
-        format!("--remote-debugging-port={}", port),
-        format!("--user-data-dir={}", user_data_dir.to_string_lossy()),
-        "--new-window".to_string(),
-        "--no-first-run".to_string(),
-        "--no-default-browser-check".to_string(),
-    ];
-
-    Command::new(edge_path)
+    // ========== 5. 启动浏览器进程 ==========
+    Command::new(browser_path)
         .args(&args)
         .spawn()
-        .context("启动 Edge 失败")?;
+        .context("启动浏览器失败")?;
 
-    info!("Edge 浏览器已启动，调试端口: {}", port);
+    info!("浏览器已启动，调试端口: {}", port);
     Ok(())
 }
+
 
 #[tokio::test]
 

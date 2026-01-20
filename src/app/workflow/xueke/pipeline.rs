@@ -1,7 +1,7 @@
 use anyhow::Result;
 use futures::stream::{self, StreamExt};
 use std::fs;
-use tracing::{ info, warn};
+use tracing::{info, warn};
 
 use crate::api::check_paper_exit::check_paper_name_exist;
 use crate::app::state::AppState;
@@ -63,26 +63,20 @@ pub async fn run_xueke_pipeline(
     // 创建输出目录
     fs::create_dir_all(&app_config.output_dir)?;
 
-    // 并发下载所有试卷（最多2个并发）
+    // 并发下载所有试卷（最多 10 个并发）
     let total = papers_to_download.len();
     let downloaded_papers = stream::iter(papers_to_download.into_iter().enumerate())
         .map(|(idx, paper_info)| {
             let state = state.clone();
-
             async move {
                 info!("[{}/{}] 开始下载: {}", idx + 1, total, paper_info.title);
 
                 match download_paper(&state, &paper_info.url).await {
                     Ok(paper) => {
-                        info!("✅ 成功处理试卷: {}", paper.name);
-
-
+                        info!("成功下载试卷: {}", paper.name);
                         Some(paper)
                     }
-                    Err(e) => {
-                        warn!("❌ 处理试卷失败: {}，错误: {}", paper_info.title, e);
-                        None
-                    }
+                    Err(e) => { warn!("❌ 处理试卷失败: {}，错误: {}", paper_info.title, e); None }
                 }
             }
         })

@@ -1,5 +1,4 @@
 use anyhow::{Ok, Result};
-use chromiumoxide::Page;
 use serde_json::{Value, json};
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
@@ -15,25 +14,23 @@ use crate::app::workflow::metadata::data_subject::find_subject_code;
 use crate::app::workflow::metadata::deter_city::determine_city_from_paper_name;
 use crate::app::workflow::metadata::deter_misc::MiscInfo;
 
-pub async fn save_paper(tiku_page: Page, paper: &mut Paper) -> anyhow::Result<()> {
+pub async fn save_paper(paper: &mut Paper) -> anyhow::Result<()> {
     let playload = construct_upload_payload(paper).await?;
     debug!("上传试卷负载: {}", playload);
 
-    let code = build_save_paper_js(&playload);
-    debug!("保存试卷的 JS 代码: {}", code);
-
-    let response: chromiumoxide::js::EvaluationResult = tiku_page.evaluate(code).await?;
-    debug!("保存试卷响应: {:?}", response);
-    // 2. 转为通用的 JSON Value
-    let json_val: Value = response.into_value()?;
-
+    // 调用 API 提交试卷
+    let json_val = crate::api::submit_paper::submit_paper_api(&playload).await?;
+    
+    debug!("保存试卷响应: {:?}", json_val);
+    
     // 3. 提取 data 字段
     if let Some(data_str) = json_val.get("data").and_then(|v| v.as_str()) {
         let paper_id = data_str.to_string();
         info!("Paper ID: {}", paper_id);
         paper.set_paper_id(paper_id);
     } else {
-        error!("无法找到 data 字段或 data 不是字符串");
+        error!("无法找到保存试卷的 data 字段或 data 不是字符串");
+        error!("失败的完整响应: {:?}", json_val);
     }
 
     // 导出 paper 到 TOML 文件
@@ -42,7 +39,7 @@ pub async fn save_paper(tiku_page: Page, paper: &mut Paper) -> anyhow::Result<()
     Ok(())
 }
 
-async fn construct_upload_payload(paper: &Paper) -> Result<String> {
+async fn construct_upload_payload(paper: &Paper) -> Result<Value> {
     let city_code = determine_city_from_paper_name(&paper.name, &paper.province)
         .await?
         .unwrap_or(0)
@@ -84,7 +81,7 @@ async fn construct_upload_payload(paper: &Paper) -> Result<String> {
         "attachments": attachments
     });
 
-    Ok(payload.to_string())
+    Ok(payload)
 }
 
 /// 导出 Paper 到 TOML 文件
@@ -121,31 +118,5 @@ async fn export_paper_to_toml(paper: &Paper) -> Result<()> {
     Ok(())
 }
 
-const API_BASE_URL: &str = "https://tps-tiku-api.staff.xdf.cn";
-const SAVE_PAPER_API_PATH: &str = "/paper/new/save";
-/// 生成保存试卷的 JavaScript 代码
-pub fn build_save_paper_js(playload: &str) -> String {
-    format!(
-        r#"
-        (async () => {{
-            try {{
-                const response = await fetch("{API_BASE_URL}{SAVE_PAPER_API_PATH}", {{
-                    method: "POST",
-                    headers: {{
-                        "Content-Type": "application/json",
-                        "Accept": "application/json, text/plain, */*",
-                        "tikutoken": "732FD8402F95087CD934374135C46EE5"
-                    }},
-                    credentials: "include",
-                    body: JSON.stringify({}),
-                }});
-                const data = await response.json();
-                return data;
-            }} catch (err) {{
-                return {{ error: err.toString() }};
-            }}
-        }})()
-        "#,
-        playload
-    )
-}
+
+

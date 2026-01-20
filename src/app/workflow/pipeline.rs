@@ -13,21 +13,16 @@ pub async fn run(state: AppState) -> anyhow::Result<()> {
         tracing::info!(">>> 开始处理第 {} 页", page_num);
         let pages = run_xueke_pipeline(state.clone(), page_num).await?;
 
-        let tiku_page = state.page.read().await.clone();
-
-        // 并发处理上传任务 (并发度设置为 5)
+        // 并发处理上传任务 (并发度设置为 10)
         futures::stream::iter(pages)
             .map(|mut page| {
-                let tiku_page = tiku_page.clone();
-                async move { save_paper(tiku_page, &mut page).await }
+                async move { save_paper(&mut page).await }
             })
-            .buffer_unordered(5)
+            .buffer_unordered(10)
             .collect::<Vec<anyhow::Result<()>>>()
             .await
             .into_iter()
             .collect::<anyhow::Result<()>>()?;
-
-        
     }
 
     Ok(())
