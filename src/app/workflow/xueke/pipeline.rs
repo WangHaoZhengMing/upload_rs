@@ -33,7 +33,7 @@ pub async fn run_xueke_pipeline(
     // 并发检查所有试卷是否已存在
     let paper_list = stream::iter(paper_list.into_iter())
         .map(|mut paper| async move {
-            match check_paper_name_exist(&paper.title, 1, None).await {
+            match check_paper_name_exist(&paper.title, None).await {
                 Ok(exists) => {
                     paper.is_exit = exists;
                     if exists {
@@ -76,7 +76,10 @@ pub async fn run_xueke_pipeline(
                         info!("成功下载试卷: {}", paper.name);
                         Some(paper)
                     }
-                    Err(e) => { warn!("❌ 处理试卷失败: {}，错误: {}", paper_info.title, e); None }
+                    Err(e) => {
+                        warn!("❌ 处理试卷失败: {}，错误: {}", paper_info.title, e);
+                        None
+                    }
                 }
             }
         })

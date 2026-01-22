@@ -1,5 +1,5 @@
 use anyhow::Result;
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
 use crate::api::llm::resolve_city_with_llm;
 use crate::app::workflow::metadata::data_addr::{get_city_code, match_cities_from_paper_name};
@@ -12,7 +12,7 @@ pub async fn determine_city_from_paper_name(
     // 1. 先用 Rust 代码匹配城市
     let matched_cities = match_cities_from_paper_name(paper_name, Some(province));
 
-    info!(
+    debug!(
         "从试卷名称 '{}' 中匹配到 {} 个城市: {:?}",
         paper_name,
         matched_cities.len(),

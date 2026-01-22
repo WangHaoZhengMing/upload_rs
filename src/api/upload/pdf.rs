@@ -5,7 +5,7 @@ use s3::region::Region;
 use serde_json::Value;
 use std::fs::File;
 use std::io::Read;
-use tracing::info;
+use tracing::{debug, info};
 
 use super::get_credential::get_credential;
 
@@ -72,11 +72,11 @@ async fn upload_pdf_to_cos_with_credential(
     credential_json: &Value,
     local_file_path: &str,
 ) -> Result<String> {
-    info!("开始上传 PDF: {}", local_file_path);
+    debug!("开始上传 PDF: {}", local_file_path);
 
     // 1. 解析凭证信息
     let cred_info = parse_credential_info(credential_json)?;
-    info!(
+    debug!(
         "凭证信息解析成功，Bucket: {}, Region: {}",
         cred_info.bucket, cred_info.region
     );
@@ -125,7 +125,7 @@ async fn upload_pdf_to_cos_with_credential(
         extension
     );
 
-    info!("上传路径: {}", object_key);
+    debug!("上传路径: {}", object_key);
 
     // 7. 执行上传
     let response = bucket.put_object(&object_key, &contents).await?;
@@ -133,7 +133,7 @@ async fn upload_pdf_to_cos_with_credential(
     if response.status_code() == 200 {
         // 8. 拼接最终的 CDN URL
         let final_url = format!("https://{}/{}", cred_info.cdn_domain, object_key);
-        info!("PDF 上传成功！最终 URL: {}", final_url);
+        debug!("PDF 上传成功！最终 URL: {}", final_url);
         Ok(final_url)
     } else {
         Err(anyhow::anyhow!(
@@ -145,7 +145,7 @@ async fn upload_pdf_to_cos_with_credential(
 
 /// 上传 PDF 的完整流程：获取凭证 -> 上传 PDF -> 返回 URL
 pub async fn upload_pdf(local_file_path: &str) -> Result<String> {
-    info!("开始上传 PDF 流程: {}", local_file_path);
+    debug!("开始上传 PDF 流程: {}", local_file_path);
 
     // 1. 获取上传凭证
     let credential = get_credential().await?;

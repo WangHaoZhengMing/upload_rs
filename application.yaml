@@ -1,23 +1,45 @@
-# 数学
+# 数学25-中考备考
+token: XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=01233ce9242f4fedb6ed9ec1562ac64c; token=01233ce9242f4fedb6ed9ec1562ac64c
+start_page: 250
+end_page: 620
+output_dir: "output"
+concurrency: 3
+delay_ms: 100
+catalogue_base_url: "https://zujuan.xkw.com/czsx/shijuan/bk/y2025p"
+
+
+
+
+
+
+# 物理25
 # token: XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=01233ce9242f4fedb6ed9ec1562ac64c; token=01233ce9242f4fedb6ed9ec1562ac64c
-# start_page: 13
+# start_page: 11
+# end_page: 20
+# output_dir: "output"
+# concurrency: 3
+# delay_ms: 100
+# catalogue_base_url: "https://zujuan.xkw.com/czwl/shijuan/bk/y2025p"
+
+
+
+#化学25-中考备考(已完成)
+# token: XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=01233ce9242f4fedb6ed9ec1562ac64c; token=01233ce9242f4fedb6ed9ec1562ac64c
+# start_page: 348
 # end_page: 400
 # output_dir: "output"
 # concurrency: 3
 # delay_ms: 100
-# catalogue_base_url: "https://zujuan.xkw.com/czsx/shijuan/bk/y2025p"
+# catalogue_base_url: "https://zujuan.xkw.com/czhx/shijuan/bk/y2025p"
 
 
+#化学24-中考备考(已完成)
+# token: XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=01233ce9242f4fedb6ed9ec1562ac64c; token=01233ce9242f4fedb6ed9ec1562ac64c
+# start_page: 322
+# end_page: 392
+# output_dir: "output"
+# delay_ms: 100
+# catalogue_base_url: "https://zujuan.xkw.com/czhx/shijuan/bk/y2024p"
 
 
-
-
-
-token: XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=01233ce9242f4fedb6ed9ec1562ac64c; token=01233ce9242f4fedb6ed9ec1562ac64c
-start_page: 11
-end_page: 11
-output_dir: "output"
-concurrency: 3
-delay_ms: 100
-catalogue_base_url: "https://zujuan.xkw.com/czwl/shijuan/bk/y2025p"
 

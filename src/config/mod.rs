@@ -13,7 +13,6 @@ pub struct AppConfig {
     pub start_page: i32,
     pub end_page: i32,
     pub output_dir: String,
-
     pub catalogue_base_url: String,
 }
 

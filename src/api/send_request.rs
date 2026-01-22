@@ -55,7 +55,7 @@ pub async fn send_api_request(url: &str, playload: &Value) -> Result<Value> {
 
     // 检查 HTTP 状态码
     let status = resp.status();
-    info!("API 响应状态码: {}", status);
+    debug!("API 响应状态码: {}", status);
 
     let resp_json: Value = resp.json().await?;
 

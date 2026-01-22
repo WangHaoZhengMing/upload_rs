@@ -4,6 +4,8 @@ use reqwest::header::{ACCEPT, COOKIE, HOST, HeaderMap, HeaderValue, ORIGIN, REFE
 use serde_json::Value;
 use tracing::{debug, info};
 
+use crate::config::get;
+
 pub async fn send_api_get_request(url: &str) -> Result<Value> {
     let mut headers = HeaderMap::new();
     // 1. 模拟浏览器 UA
@@ -23,10 +25,10 @@ pub async fn send_api_get_request(url: &str) -> Result<Value> {
         ACCEPT,
         HeaderValue::from_static("application/json, text/plain, */*"),
     );
-
+    let token = &get().token;
     // 6. 【最关键】Cookie (直接复制抓包里的完整字符串)
     // 包含: XDFUUID, e2e, e2mf, token
-    headers.insert(COOKIE, HeaderValue::from_static("XDFUUID=74446495-43cb-63a4-8eb7-06689640e0e0; e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=64e01edc04c9498993ae2a3cdfff2919; token=64e01edc04c9498993ae2a3cdfff2919"));
+    headers.insert(COOKIE, HeaderValue::from_str(token)?);
 
     headers.insert(
         "tikutoken",
@@ -86,6 +88,7 @@ mod tests {
         logger::init_test();
         let url = "https://tps-tiku-api.staff.xdf.cn/paper/check/paperName?paperName=测试试卷&operationType=1&paperId=";
         let result = send_api_get_request(url).await;
+        println!("API GET 请求结果: {:?}", result);
         assert!(result.is_ok());
     }
 }

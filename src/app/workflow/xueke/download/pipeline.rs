@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Ok};
 use scraper::{Html, Selector};
 use serde_json::Value;
+use core::panic;
 use std::path::Path;
 use tokio::fs;
 use tracing::{debug, error, info, warn};
@@ -120,11 +121,10 @@ pub async fn download_paper(state: &AppState, paper_url: &str) -> anyhow::Result
 
     debug!("开始生成 PDF");
     if let Err(e) = generate_pdf(&page, &pdf_path).await {
-        error!("生成 PDF 失败: {}，但继续处理数据", e);
-        warn!("生成 PDF 失败: {}，但继续处理数据", e);
+        error!("三次生成 PDF 均失败: {}", e);
+        panic!("生成 PDF 失败: {}", e);
     } else {
-        info!("已保存 PDF: {:?}", pdf_path);
-        debug!("PDF 生成成功");
+        debug!("已保存 PDF: {:?}", pdf_path);
     }
     // 关闭页面释放资源
     debug!("正在关闭试卷页面");

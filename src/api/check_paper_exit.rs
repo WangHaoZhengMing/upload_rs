@@ -14,10 +14,10 @@ use super::get_request::send_api_get_request;
 /// * `Ok(bool)` - true表示重复，false表示不重复
 pub async fn check_paper_name_exist(
     paper_name: &str,
-    operation_type: u32,
     paper_id: Option<&str>,
 ) -> Result<bool> {
     let paper_id_str = paper_id.unwrap_or("");
+    let operation_type = 1;
 
     // URL 编码试卷名称
     let encoded_paper_name = urlencoding::encode(paper_name);
@@ -32,11 +32,12 @@ pub async fn check_paper_name_exist(
     let resp = send_api_get_request(&url).await?;
 
     // 解析响应
+    println!("检查试卷名称响应: {:?}", resp);
     let is_repeated = resp
         .get("data")
         .and_then(|data| data.get("repeated"))
         .and_then(|v| v.as_bool())
-        .unwrap_or(false);
+        .unwrap();
 
     if is_repeated {
         info!("试卷名称 '{}' 已存在", paper_name);
@@ -58,7 +59,7 @@ mod tests {
         logger::init_test();
 
         // 测试新建试卷时检查名称
-        let result = check_paper_name_exist("测试试卷名称", 1, None).await;
+        let result = check_paper_name_exist("广东省湛江市雷州市第五中学集团2025-2026学年七年级上学期11月期中历史试题",  None).await;
         assert!(result.is_ok());
 
         println!("试卷名称检查结果: {:?}", result);
