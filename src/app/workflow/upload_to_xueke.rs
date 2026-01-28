@@ -16,7 +16,7 @@ use crate::app::workflow::metadata::deter_misc::MiscInfo;
 
 pub async fn save_paper(paper: &mut Paper) -> anyhow::Result<()> {
     let playload = construct_upload_payload(paper).await?;
-    debug!("上传试卷负载: {}", playload);
+    info!("上传试卷负载: {}", playload);
 
     // 调用 API 提交试卷
     let json_val = crate::api::submit_paper::submit_paper_api(&playload).await?;
@@ -58,9 +58,9 @@ async fn construct_upload_payload(paper: &Paper) -> Result<Value> {
         "schName": "集团",
         "schNumber": "65",
         "paperMonth": parsed_data.paper_month,
-        "schoolYearBegin": parsed_data.school_year_begin,
-        "schoolYearEnd": parsed_data.school_year_end,
-        "paperTerm": parsed_data.paper_term.unwrap_or_else(||{warn!("not found paper_term, using \"\" by default");"".to_string()}),
+        "schoolYearBegin": parsed_data.school_year_begin.unwrap_or_else(||2025),
+        "schoolYearEnd": parsed_data.school_year_end.unwrap_or_else(||2026),
+        "paperTerm": parsed_data.paper_term.unwrap_or_else(||{warn!("not found paper_term, using \"1\" by default");"1".to_string()}),
         "paperYear": paper.year.parse::<i32>().unwrap_or_else(|_|{warn!("Can not parse year, using 2024 by default"); 2024}),
         "courseVersionCode": "",
         "address": [

@@ -38,5 +38,5 @@ pub fn extract_year(title: &str) -> String {
         }
     }
     
-    "未知".to_string()
+    "2026".to_string()
 }
