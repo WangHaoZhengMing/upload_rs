@@ -8,7 +8,7 @@ use super::get_request::send_api_get_request;
 /// # 参数
 /// * `paper_name` - 试卷名称
 /// * `operation_type` - 操作类型 (1: 新建, 2: 编辑)
-/// * `paper_id` - 试卷ID (编辑时需要提供，新建时为空)
+/// * `paper_id` - 试卷ID (新建时为空)
 ///
 /// # 返回
 /// * `Ok(bool)` - true表示重复，false表示不重复
@@ -27,12 +27,8 @@ pub async fn check_paper_name_exist(
         encoded_paper_name, operation_type, paper_id_str
     );
 
-    info!("检查试卷名称: {}", paper_name);
-
     let resp = send_api_get_request(&url).await?;
 
-    // 解析响应
-    println!("检查试卷名称响应: {:?}", resp);
     let is_repeated = resp
         .get("data")
         .and_then(|data| data.get("repeated"))
@@ -59,9 +55,8 @@ mod tests {
         logger::init_test();
 
         // 测试新建试卷时检查名称
-        let result = check_paper_name_exist("广东省湛江市雷州市第五中学集团2025-2026学年七年级上学期11月期中历史试题",  None).await;
-        assert!(result.is_ok());
-
-        println!("试卷名称检查结果: {:?}", result);
+        let result = check_paper_name_exist("山东省临沂市临沭县东城实验中学2024-2025学年八年级上学期10月月考地理试题",  None).await;
+        assert_eq!(result.is_ok(), true);
+        // println!("试卷名称检查结果: {:?}", result);
     }
 }

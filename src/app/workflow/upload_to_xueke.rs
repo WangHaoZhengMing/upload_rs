@@ -2,8 +2,7 @@ use anyhow::{Ok, Result};
 use serde_json::{Value, json};
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
-use tracing::warn;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info,warn};
 
 use crate::api::upload::batch::upload_and_convert_pdf;
 use crate::app::models::Paper;
@@ -20,9 +19,9 @@ pub async fn save_paper(paper: &mut Paper) -> anyhow::Result<()> {
 
     // 调用 API 提交试卷
     let json_val = crate::api::submit_paper::submit_paper_api(&playload).await?;
-    
+
     debug!("保存试卷响应: {:?}", json_val);
-    
+
     // 3. 提取 data 字段
     if let Some(data_str) = json_val.get("data").and_then(|v| v.as_str()) {
         let paper_id = data_str.to_string();
@@ -30,7 +29,7 @@ pub async fn save_paper(paper: &mut Paper) -> anyhow::Result<()> {
         paper.set_paper_id(paper_id);
     } else {
         error!("无法找到保存试卷的 data 字段或 data 不是字符串");
-        error!("失败的完整响应: {:?}", json_val);
+        debug!("失败的完整响应: {:?}", json_val);
     }
 
     // 导出 paper 到 TOML 文件
@@ -45,7 +44,7 @@ async fn construct_upload_payload(paper: &Paper) -> Result<Value> {
         .unwrap_or(0)
         .to_string();
     let province_code = get_province_code(&paper.province).unwrap_or(0);
-    let parsed_data = MiscInfo::get_mis_info(&paper.name).await.unwrap();
+    let parsed_data = MiscInfo::get_misc_info(&paper.name).await.unwrap();
 
     let pdf_path = format!("PDF/{}.pdf", paper.name_for_pdf);
     let upload_response = upload_and_convert_pdf(&pdf_path).await?;
@@ -61,7 +60,7 @@ async fn construct_upload_payload(paper: &Paper) -> Result<Value> {
         "schoolYearBegin": parsed_data.school_year_begin.unwrap_or_else(||2025),
         "schoolYearEnd": parsed_data.school_year_end.unwrap_or_else(||2026),
         "paperTerm": parsed_data.paper_term.unwrap_or_else(||{warn!("not found paper_term, using \"1\" by default");"1".to_string()}),
-        "paperYear": paper.year.parse::<i32>().unwrap_or_else(|_|{warn!("Can not parse year, using 2024 by default"); 2024}),
+        "paperYear": paper.year.parse::<i32>().unwrap_or_else(|_|{warn!("Can not parse year, using 2025 by default"); 2025}),
         "courseVersionCode": "",
         "address": [
         {
@@ -117,6 +116,3 @@ async fn export_paper_to_toml(paper: &Paper) -> Result<()> {
     info!("导出 Paper 到: {}", file_path);
     Ok(())
 }
-
-
-

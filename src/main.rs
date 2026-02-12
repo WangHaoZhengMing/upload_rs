@@ -1,11 +1,9 @@
 mod api;
 mod app;
 mod config;
-
 use anyhow::Result;
 use app::state::AppState;
 use tracing::info;
-
 use crate::app::workflow::pipeline::run;
 
 #[tokio::main]

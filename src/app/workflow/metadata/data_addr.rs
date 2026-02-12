@@ -23,6 +23,8 @@ static PROVINCE_MAP: phf::Map<&'static str, i16> = phf_map! {
     "湖南省" => 43,
     "广东省" => 44,
     "广西自治区" => 45,
+    "广西壮族自治区" => 45, // 支持带"壮族"字样的匹配
+
     "海南省" => 46,
     "重庆市" => 50,
     "四川省" => 51,
@@ -33,6 +35,8 @@ static PROVINCE_MAP: phf::Map<&'static str, i16> = phf_map! {
     "甘肃省" => 62,
     "青海省" => 63,
     "宁夏自治区" => 64,
+    "宁夏回族自治区" => 64, // 支持带"回族"字样的匹配
+
     "新疆自治区" => 65,
     "台湾省" => 71,
     "香港" => 81,
@@ -343,7 +347,7 @@ static PROVINCE_CITY_MAP: phf::Map<&'static str, phf::Map<&'static str, i16>> = 
 
     "重庆市" => phf_map! {
         "重庆市" => 5001,
-        "县" => 5002,
+        // "县" => 5002,
     },
 
     "四川省" => phf_map! {
@@ -645,19 +649,9 @@ pub fn match_cities_from_paper_name(paper_name: &str, province_name: Option<&str
     matched_cities
 }
 
-// # Reference Dictionary (参考字典 - 级联关系)
-// **浙江省 (index=12)** 下属城市:
-//   - 杭州市 (code: 3301)
-//   - 宁波市 (code: 3302)
-//   - 温州市 (code: 3303)
-//   - 嘉兴市 (code: 3304)
-//   - 湖州市 (code: 3305)
-//   - 绍兴市 (code: 3306)
-//   - 金华市 (code: 3307)
-//   - 衢州市 (code: 3308)
-//   - 舟山市 (code: 3309)
-//   - 台州市 (code: 3310)
-//   - 丽水市 (code: 3311)
 
-// **江苏省 (index=11)** 下属城市:
-//   - [这里可以补充江苏的城市...]
+
+#[test]
+fn test_get_province_code() {
+    println!("{}", get_province_code("北京市").unwrap_or(-100))
+}

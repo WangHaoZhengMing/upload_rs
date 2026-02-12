@@ -1,3 +1,4 @@
+use tokio_retry::strategy::FixedInterval;
 use tracing::warn;
 
 use crate::api::llm::ask_llm;
@@ -26,7 +27,7 @@ impl Default for MiscInfo {
 }
 
 impl MiscInfo {
-    pub fn prompt_for_llm(question_name: &str) -> String {
+    pub fn misc_prompt_for_llm(question_name: &str) -> String {
         let user_message = format!(
             r#"你是一个专业的教务数据分析助手。请根据试卷名称 "{}" 分析并提取元数据。
 
@@ -80,12 +81,31 @@ impl MiscInfo {
         user_message
     }
 
-    pub async fn get_mis_info(question_name: &str) -> Option<MiscInfo> {
-        let response = ask_llm(&Self::prompt_for_llm(question_name)).await.ok()?;
-        match serde_json::from_str::<MiscInfo>(&response) {
+ pub async fn get_misc_info(question_name: &str) -> Option<MiscInfo> {
+        // 1. 定义策略：重试4次，每次间隔1000ms
+        let strategy = FixedInterval::from_millis(1000).take(4);
+
+        let action = || async {
+            let prompt = Self::misc_prompt_for_llm(question_name);
+            let response = ask_llm(&prompt).await.map_err(|_| "LLM 请求失败")?;
+            
+            let cleaned = response.trim()
+                .trim_start_matches("```json")
+                .trim_start_matches("```")
+                .trim_end_matches("```");
+
+            serde_json::from_str::<MiscInfo>(cleaned)
+                .map_err(|e| {
+                    warn!("解析失败: {}, 原始内容: {}", e, response);
+                    "JSON 解析失败" 
+                })
+        };
+
+        // 3. 执行：一行代码搞定重试循环
+        match tokio_retry::Retry::spawn(strategy, action).await {
             Ok(info) => Some(info),
             Err(e) => {
-                warn!("解析 LLM 响应失败: {}，响应内容: {}", e, response);
+                warn!("重试耗尽，最终失败原因: {:?}", e);
                 None
             }
         }
