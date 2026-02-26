@@ -1,21 +1,22 @@
 use chromiumoxide::cdp::browser_protocol::page::PrintToPdfParams;
 use std::path::Path;
+use tokio_retry::Retry;
+use tokio_retry::strategy::FixedInterval;
 use tracing::warn;
 
 /// 生成 PDF 文件
 pub async fn generate_pdf(page: &chromiumoxide::Page, path: &Path) -> anyhow::Result<()> {
-    let mut attempts = 0;
-    loop {
-        attempts += 1;
+    let retry_strategy = FixedInterval::from_millis(1000).take(3);
+
+    Retry::spawn(retry_strategy, || async {
         let params = PrintToPdfParams::default();
-        match page.save_pdf(params, path).await {
-            Ok(_) => return Ok(()),
-            Err(e) => {
-                if attempts >= 3 {
-                    return Err(e.into());
-                }
-                warn!("PDF generation failed (attempt {}): {}, retrying...", attempts, e);
-            }
-        }
-    }
+        page.save_pdf(params, path).await
+    })
+    .await
+    .map_err(|e| {
+        warn!("PDF generation failed after retries: {}", e);
+        anyhow::anyhow!(e)
+    })?;
+
+    Ok(())
 }

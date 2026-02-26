@@ -2,7 +2,7 @@ use anyhow::{Ok, Result};
 use serde_json::{Value, json};
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
-use tracing::{debug, error, info,warn};
+use tracing::{debug, error, info, warn};
 
 use crate::api::upload::batch::upload_and_convert_pdf;
 use crate::app::models::Paper;
@@ -15,7 +15,7 @@ use crate::app::workflow::metadata::deter_misc::MiscInfo;
 
 pub async fn save_paper(paper: &mut Paper) -> anyhow::Result<()> {
     let playload = construct_upload_payload(paper).await?;
-    info!("上传试卷负载: {}", playload);
+    debug!("上传试卷负载: {}", playload);
 
     // 调用 API 提交试卷
     let json_val = crate::api::submit_paper::submit_paper_api(&playload).await?;
@@ -60,7 +60,7 @@ async fn construct_upload_payload(paper: &Paper) -> Result<Value> {
         "schoolYearBegin": parsed_data.school_year_begin.unwrap_or_else(||2025),
         "schoolYearEnd": parsed_data.school_year_end.unwrap_or_else(||2026),
         "paperTerm": parsed_data.paper_term.unwrap_or_else(||{warn!("not found paper_term, using \"1\" by default");"1".to_string()}),
-        "paperYear": paper.year.parse::<i32>().unwrap_or_else(|_|{warn!("Can not parse year, using 2025 by default"); 2025}),
+        "paperYear": parsed_data.paper_year.or_else(||{warn!("not found paper_year, using 2025 by default"); Some(2025)}),
         "courseVersionCode": "",
         "address": [
         {

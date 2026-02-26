@@ -1,25 +1,18 @@
 use anyhow::{Context, Result};
-use chromiumoxide::Page;
 use chromiumoxide::browser::Browser;
 use futures::StreamExt;
-use std::{env, path::PathBuf};
 use std::process::Command;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::RwLock;
+use std::{env, path::PathBuf};
 use tokio::time::sleep;
 use tracing::{debug, info, warn};
 
 /// 应用程序共享状态
 #[derive(Clone)]
 pub struct AppState {
-
     /// 浏览器实例
     pub browser: Arc<Browser>,
-
-    /// 页面实例（使用 RwLock 支持并发访问）
-    pub page: Arc<RwLock<Page>>,
-
     /// 应用配置
     pub _config: &'static crate::config::AppConfig,
 }
@@ -30,45 +23,12 @@ impl AppState {
         // 连接到浏览器
         let browser = connect_browser().await?;
 
-        // 目标 URL
-        let target_url = "https://tk-lpzx.xdf.cn/#/paperEnterList";
-
         // 获取所有已打开的页面
         let pages = browser.pages().await?;
         tracing::info!("当前浏览器中有 {} 个页面", pages.len());
 
-        // 查找是否已经有目标页面打开
-        let mut found_page: Option<Page> = None;
-        for page in pages {
-            if let Ok(url) = page.url().await {
-                if let Some(u) = url {
-                    tracing::debug!("检查页面: {}", u);
-                    if u.starts_with("https://tk-lpzx.xdf.cn/") {
-                        tracing::info!("找到已存在的目标页面: {}", u);
-                        found_page = Some(page);
-                        break;
-                    }
-                }
-            }
-        }
-
-        let page = if let Some(existing_page) = found_page {
-            tracing::info!("使用已存在的页面");
-            existing_page
-        } else {
-            tracing::info!("未找到目标页面，正在创建新页面...");
-            let new_page = browser.new_page(target_url).await?;
-
-            tracing::info!("页面已打开，等待 10 秒以便用户登录...");
-            tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
-            tracing::info!("等待完成");
-
-            new_page
-        };
-
         Ok(Self {
             browser: Arc::new(browser),
-            page: Arc::new(RwLock::new(page)),
             _config: crate::config::get(),
         })
     }
@@ -137,22 +97,18 @@ pub async fn connect_browser() -> Result<Browser> {
     Ok(browser)
 }
 
-
-
 fn launch_edge_process(port: u16) -> Result<()> {
     // ========== 1. 跨平台获取用户主目录 ==========
     let (base_user_data_dir, browser_exec_args) = if cfg!(target_os = "windows") {
         // Windows 逻辑
         let user_profile = env::var("USERPROFILE").context("找不到 USERPROFILE")?;
-        let base_dir = PathBuf::from(user_profile)
-            .join(r"AppData\Local\Microsoft\Edge\User Data");
+        let base_dir = PathBuf::from(user_profile).join(r"AppData\Local\Microsoft\Edge\User Data");
         // 修改点1：统一用 String 类型，避免 &str 和 String 不兼容
         (base_dir, vec![])
     } else if cfg!(target_os = "macos") {
         // macOS 逻辑
         let home_dir = env::var("HOME").context("找不到 HOME 环境变量")?;
-        let base_dir = PathBuf::from(home_dir)
-            .join("Library/Application Support/Microsoft Edge");
+        let base_dir = PathBuf::from(home_dir).join("Library/Application Support/Microsoft Edge");
         // 修改点1：将 &str 改为 String 类型（加 to_string()）
         (base_dir, vec!["--args".to_string()])
     } else {
@@ -191,9 +147,9 @@ fn launch_edge_process(port: u16) -> Result<()> {
     args.extend(vec![
         format!("--remote-debugging-port={}", port), // 返回 String
         format!("--user-data-dir={}", user_data_dir.to_string_lossy()), // 返回 String
-        "--new-window".to_string(), // &str 转 String
-        "--no-first-run".to_string(), // &str 转 String
-        "--no-default-browser-check".to_string(), // &str 转 String
+        "--new-window".to_string(),                  // &str 转 String
+        "--no-first-run".to_string(),                // &str 转 String
+        "--no-default-browser-check".to_string(),    // &str 转 String
     ]);
 
     // ========== 5. 启动浏览器进程 ==========
@@ -205,7 +161,6 @@ fn launch_edge_process(port: u16) -> Result<()> {
     info!("浏览器已启动，调试端口: {}", port);
     Ok(())
 }
-
 
 #[tokio::test]
 
