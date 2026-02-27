@@ -9,13 +9,13 @@
 
 
 # 物理25-中考备考(已完成)
-token: e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=9194e86ecda3469f95040e8a810727a3; token=9194e86ecda3469f95040e8a810727a3; XDFUUID=487671c7-d4e6-d27c-8319-a551b29a4a80
-start_page: 1
-end_page: 421 # end
+token: e2e=55B2D1619F0C8CF273169F8F1CA49A93; e2mf=f2ed38d6bd0741d6a5240f6a25040c8e; token=f2ed38d6bd0741d6a5240f6a25040c8e
+start_page: 20
+end_page: 258 # end
 output_dir: "output"
 concurrency: 3
 delay_ms: 100
-catalogue_base_url: "https://zujuan.xkw.com/czdl/shijuan/bk/y-1p"
+catalogue_base_url: "https://zujuan.xkw.com/czwl/shijuan/jdcs/f2y2026p"
 
 
 

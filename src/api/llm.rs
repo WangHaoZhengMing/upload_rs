@@ -2,9 +2,9 @@ use openai::Credentials;
 use openai::chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole};
 use tracing::{debug, info, warn};
 
-const API_KEY: &str = "26e96c4d312e48feacbd78b7c42bd71e";
+const API_KEY: &str = "08c4c841057c42da9cbeda32184035ff";
 const API_BASE_URL: &str = "http://menshen.xdf.cn/v1";
-const MODEL_NAME: &str = "gemini-3.0-pro-preview";
+const MODEL_NAME: &str = "doubao-seed-1.6-flash";
 
 pub struct LlmConfig {
     pub api_key: Option<String>,
